@@ -190,11 +190,15 @@
     { k: 'お', r: 'o', hint: 'as in otsukaresama' },
   ];
 
+  // Only one notification waits on the lock screen…
   const NOTIFS = [
     { app: 'wallet', title: 'Wallet', time: 'now', body: '<b>Boarding pass added</b> · Grasse → Hachinohe. Departure: as soon as you say yes.' },
-    { app: 'mail', title: 'Mail', time: '2m ago', body: '<b>Sent</b> · Civic Service application — Hachinohe Gakuin University. GANBATTE.pdf attached.' },
-    { app: 'messages', title: 'Maman', time: '7:58 PM', body: 'Fière de toi. がんばって !', open: () => openThread('mom') },
-    { app: 'kana', title: '日本語', time: '9:00 AM', body: 'Day 1 🔥 · 5 new hiragana: あ い う え お' },
+  ];
+  // …the others drop in as banners while the phone is being used (delay = ms after the previous one).
+  const BANNERS = [
+    { delay: 6000, app: 'mail', title: 'Mail', body: '<b>Sent</b> · Civic Service application — Hachinohe Gakuin University. GANBATTE.pdf attached.', badge: true },
+    { delay: 14000, app: 'messages', title: 'Maman', body: 'Fière de toi. がんばって !', badge: true, open: () => openThread('mom') },
+    { delay: 20000, app: 'kana', title: '日本語', body: 'Day 1 🔥 · 5 new hiragana: あ い う え お' },
   ];
 
   // ---------- Clock ----------
@@ -209,7 +213,7 @@
   // ---------- Home screen ----------
   const GRID = [['book', 'Ganbatte'], ['notes', 'Notes'], ['photos', 'Photos'], ['maps', 'Maps'], ['kana', '日本語'], ['contacts', 'Contacts'], ['settings', 'Settings']];
   const DOCK = [['phone', 'Phone'], ['messages', 'Messages'], ['mail', 'Mail'], ['wallet', 'Wallet']];
-  const badges = { messages: 1, mail: 1 };
+  const badges = {};
 
   function renderHome() {
     home.classList.add('wallpaper');
@@ -300,9 +304,59 @@
     lock.style.transition = 'none';
     const a = lock.animate([{ transform: `translateY(${fromDy}px)`, opacity: 1 }, { transform: 'translateY(-100%)', opacity: 0.4 }], { duration: D(480), easing: SPRING, fill: 'forwards' });
     home.animate([{ transform: 'scale(1.08)', opacity: 0.4 }, { transform: 'none', opacity: 1 }], { duration: D(520), easing: SPRING });
+    scheduleBanners();
     await a.finished;
     lock.style.display = 'none';
     a.cancel();
+  }
+
+  // ---------- Banners (notifications that arrive while you use the phone) ----------
+  const bannerHost = el('<div class="banners" aria-live="polite"></div>');
+  screen.appendChild(bannerHost);
+  let bannersStarted = false;
+  function scheduleBanners() {
+    if (bannersStarted) return;
+    bannersStarted = true;
+    let i = 0;
+    const next = () => {
+      if (i >= BANNERS.length) return;
+      const n = BANNERS[i];
+      setTimeout(function fire() {
+        if (!unlocked) return setTimeout(fire, 2000); // wait until the phone is unlocked again
+        showBanner(n); i++; next();
+      }, n.delay);
+    };
+    next();
+  }
+  function showBanner(n) {
+    if (n.badge) { badges[n.app] = (badges[n.app] || 0) + 1; renderHome(); }
+    const b = el(`<button class="notif banner">
+        <span class="notif-icon ic">${ICONS[n.app]}</span>
+        <span class="notif-title">${esc(n.title)}</span>
+        <span class="notif-time">now</span>
+        <span class="notif-body">${n.body}</span>
+      </button>`);
+    bannerHost.appendChild(b);
+    b.animate([{ transform: 'translateY(-140%) scale(.9)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: D(650), easing: 'cubic-bezier(.3,1.25,.5,1)' });
+    let gone = false;
+    const dismiss = (from = 0) => {
+      if (gone) return; gone = true;
+      b.animate([{ transform: `translateY(${from}px)`, opacity: 1 }, { transform: 'translateY(-140%)', opacity: 0 }], { duration: D(380), easing: SPRING, fill: 'forwards' }).finished.then(() => b.remove());
+    };
+    const timer = setTimeout(() => dismiss(), 5500);
+    let sy = null, dy = 0;
+    b.addEventListener('pointerdown', (e) => { sy = e.clientY; dy = 0; b.setPointerCapture(e.pointerId); });
+    b.addEventListener('pointermove', (e) => { if (sy == null) return; dy = Math.min(0, e.clientY - sy); b.style.transform = `translateY(${dy}px)`; });
+    b.addEventListener('pointerup', () => {
+      if (sy == null) return; sy = null; clearTimeout(timer);
+      if (dy < -25) return dismiss(dy);
+      b.style.transform = '';
+      if (Math.abs(dy) < 6) {
+        dismiss();
+        openApp(n.app, iconFor(n.app));
+        if (n.open) setTimeout(n.open, D(380));
+      } else b.animate([{ transform: `translateY(${dy}px)` }, { transform: 'none' }], { duration: D(300), easing: SPRING });
+    });
   }
   function relock() {
     closeApp(true);
@@ -846,6 +900,11 @@
   // ---------- Boot ----------
   tick();
   setInterval(tick, 10_000);
+  if (navigator.getBattery) navigator.getBattery().then((bat) => {
+    const lvl = $('.sb-batt-level');
+    const set = () => { lvl.style.width = `${Math.max(8, Math.round(bat.level * 100))}%`; lvl.style.background = bat.level <= 0.2 && !bat.charging ? '#FF3B30' : ''; };
+    set(); bat.addEventListener('levelchange', set); bat.addEventListener('chargingchange', set);
+  }).catch(() => {});
   renderHome();
   renderLock();
   setupLockGesture();

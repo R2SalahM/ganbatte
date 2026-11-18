@@ -141,7 +141,22 @@ body {
 }
 .sb-batt::after { content: ""; position: absolute; right: calc(-3.5 * var(--u)); top: 30%; height: 40%; width: 2px; border-radius: 0 2px 2px 0; background: currentColor; }
 .sb-batt-level { display: block; height: 100%; width: 82%; border-radius: 2px; background: currentColor; }
-@media (max-width: 520px) { .statusbar { display: none; } }
+@media (max-width: 520px) {
+  .statusbar { padding: calc(env(safe-area-inset-top, 0px) * .5) calc(26 * var(--u)) 0 calc(30 * var(--u)); }
+}
+
+/* ---------- Banners (in-use notifications) ---------- */
+.banners {
+  position: absolute; z-index: 960; left: calc(8 * var(--u)); right: calc(8 * var(--u));
+  top: calc(var(--sat) - 4 * var(--u));
+  display: grid; gap: calc(8 * var(--u));
+  pointer-events: none;
+}
+.notif.banner {
+  pointer-events: auto; opacity: 1; transform: none; touch-action: none;
+  background: rgba(255, 255, 255, .78);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .18);
+}
 
 /* ---------- Lock screen ---------- */
 .lock {
