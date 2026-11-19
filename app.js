@@ -11,6 +11,8 @@
     phoneDisplay: '+33 6 68 07 26 98',
     linkedin: '', // e.g. 'https://www.linkedin.com/in/…' — the LinkedIn button stays disabled while empty
     pdf: 'assets/GANBATTE-Ahmed-Moussa.pdf',
+    letter: 'assets/Ahmed-Moussa-Cover-letter.pdf',
+    cv: 'assets/Ahmed-Moussa-CV.pdf',
   };
 
   // ---------- Small helpers ----------
@@ -196,7 +198,7 @@
   ];
   // …the others drop in as banners while the phone is being used (delay = ms after the previous one).
   const BANNERS = [
-    { delay: 6000, app: 'mail', title: 'Mail', body: '<b>Sent</b> · Civic Service application — Hachinohe Gakuin University. GANBATTE.pdf attached.', badge: true },
+    { delay: 6000, app: 'mail', title: 'Mail', body: '<b>Sent</b> · Civic Service application — Hachinohe Gakuin University. CV, cover letter and GANBATTE book attached.', badge: true },
     { delay: 14000, app: 'messages', title: 'Maman', body: 'Fière de toi. がんばって !', badge: true, open: () => openThread('mom') },
     { delay: 20000, app: 'kana', title: '日本語', body: 'Day 1 🔥 · 5 new hiragana: あ い う え お' },
   ];
@@ -601,7 +603,7 @@
           <button class="row mail-row" data-mail="application">
             <div class="grow"><div class="thread-top"><span class="mail-from">To: Eurasia Net · Hachinohe</span><span class="thread-time">7:51 PM</span></div>
             <div class="mail-subject">Civic Service application — Hachinohe Gakuin University</div>
-            <div class="thread-preview">Dear Eurasia Net team, dear Hachinohe Gakuin University team… 📎 GANBATTE.pdf</div></div>
+            <div class="thread-preview">Dear Eurasia Net team, dear Hachinohe Gakuin University team… 📎 3 attachments</div></div>
           </button>
         </div>
         <div class="section-head">Drafts</div>
@@ -622,7 +624,7 @@
           <div class="scroll">
             <div class="mail-subject-big">Civic Service application — Hachinohe Gakuin University</div>
             <div class="mail-head" style="margin-top:calc(10*var(--u))"><span class="avatar">AM</span><b>${esc(CONFIG.name)}</b><span>To: Eurasia Net — Civic Service, Asia</span><span>Today at 7:51 PM</span></div>
-            <a class="attachment" href="${CONFIG.pdf}" download><span class="thumb"></span><span><b>GANBATTE.pdf</b><span>Application book · 8 pages · tap to download</span></span></a>
+            ${[[CONFIG.cv,'thumb-cv.jpg','CV.pdf','Ahmed Moussa · 1 page'],[CONFIG.letter,'thumb-letter.jpg','Cover letter.pdf','3 pages'],[CONFIG.pdf,'book-cover.jpg','GANBATTE.pdf','Application book · 8 pages']].map(([href,img,name,meta]) => `<a class="attachment" href="${href}" download><span class="thumb" style="background-image:url(assets/${img})"></span><span><b>${name}</b><span>${meta} · tap to download</span></span></a>`).join('')}
             <div class="letter">${LETTER}</div>
             <div class="pad-bottom"></div>
           </div></div>`);
@@ -846,7 +848,7 @@
           <div class="row"><div class="grow"><div class="field-label">languages</div><div>French, Arabic (native) · English (working) · 日本語 (starting)</div></div></div>
         </div>
         <div class="section-head"></div>
-        <div class="list"><a class="row" href="${CONFIG.pdf}" download><span class="grow" style="color:var(--ios-blue)">Download GANBATTE (PDF)</span>${chevRight}</a></div>
+        <div class="list">${[[CONFIG.cv,'Download CV (PDF)'],[CONFIG.letter,'Download cover letter (PDF)'],[CONFIG.pdf,'Download GANBATTE book (PDF)']].map(([h,l]) => `<a class="row" href="${h}" download><span class="grow" style="color:var(--ios-blue)">${l}</span>${chevRight}</a>`).join('')}</div>
         <div class="pad-bottom"></div>
       </div>`;
   }

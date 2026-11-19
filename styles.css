@@ -572,3 +572,5 @@ button.row:active { background: #E5E5EA; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+.attachment + .attachment { margin-top: calc(-6 * var(--u)); }
+.attachment b { color: var(--ink); }
